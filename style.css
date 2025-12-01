@@ -347,6 +347,9 @@ body.card-images-ready .cart-page-outside,
   z-index: 1;
   border-left: none !important;
   background-position: -22px 80px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 .cart-page-bottom h4{
     margin-top: 20px;
@@ -354,11 +357,16 @@ body.card-images-ready .cart-page-outside,
     font-family: 'Dancing Script', cursive;
     font-size: 35px;
     color: #E3442E;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 .cart-page-bottom p{
     font-size: 19px;
     font-family: 'Dancing Script', cursive;
     line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 
 .cart-page-bottom p .signature {
@@ -604,6 +612,7 @@ p {
   .card-page {
     width: var(--card-width-mobile);
     height: var(--card-height-mobile);
+    max-height: 90vh; /* Giới hạn chiều cao tối đa */
   }
   
   .card {
@@ -628,25 +637,44 @@ p {
   
   .cart-page-inside,
   .cart-page-bottom {
-    border: 12px solid var(--inside-card-color);
+    border: 10px solid var(--inside-card-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .cart-page-bottom {
+    padding: 5px;
+    box-sizing: border-box;
   }
   
   .cart-page-bottom h4 {
-    font-size: 20px;
-    margin-top: 15px;
-    margin-bottom: 8px;
+    font-size: 18px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    padding: 0 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   .cart-page-bottom p {
-    font-size: 13px;
-    line-height: 1.5;
-    padding: 0 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 0 8px;
+    margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    box-sizing: border-box;
   }
   
   .cart-page-bottom p .signature {
-    font-size: 12px;
-    margin-top: 10px;
-    padding-right: 10px;
+    font-size: 11px;
+    margin-top: 8px;
+    padding-right: 8px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   .merry-christmas {
@@ -724,16 +752,27 @@ p {
     margin-top: 20%;
   }
   
+  .cart-page-bottom {
+    padding: 3px;
+  }
+  
   .cart-page-bottom h4 {
-    font-size: 18px;
+    font-size: 16px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    padding: 0 4px;
   }
   
   .cart-page-bottom p {
-    font-size: 12px;
+    font-size: 11px;
+    line-height: 1.3;
+    padding: 0 6px;
   }
   
   .cart-page-bottom p .signature {
-    font-size: 11px;
+    font-size: 10px;
+    margin-top: 6px;
+    padding-right: 6px;
   }
   
   .merry-christmas svg {
