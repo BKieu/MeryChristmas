@@ -405,7 +405,16 @@ mainTl
   let isPlaying = false;
   let interactionHandler;
 
-  if (audio) audio.volume = 0.2;
+  if (audio) {
+    audio.volume = 0.2;
+    // Đảm bảo nhạc loop
+    audio.loop = true;
+    // Thêm event listener để đảm bảo loop hoạt động
+    audio.addEventListener('ended', function() {
+      this.currentTime = 0;
+      this.play();
+    });
+  }
 
   function updateButton() {
     if (!btn) return;
@@ -563,61 +572,355 @@ mainTl
 mainTl.add(starTl, 0);
 gsap.globalTimeline.timeScale(1.5);
 
+// ------------ Preload Card Images ------------
+const cardBgImage = new Image();
+cardBgImage.src = 'https://www.dropbox.com/s/xsgg2exs2oparkm/front-bg.png?raw=1';
+const cardPatternImage = new Image();
+cardPatternImage.src = 'https://www.dropbox.com/s/8hw7guch8d151kg/pattern.png?raw=1';
+
+let cardImagesLoaded = 0;
+const totalCardImages = 2;
+
+function onCardImageLoad() {
+  cardImagesLoaded++;
+  if (cardImagesLoaded === totalCardImages) {
+    document.body.classList.add('card-images-ready');
+  }
+}
+
+cardBgImage.onload = onCardImageLoad;
+cardBgImage.onerror = onCardImageLoad;
+cardPatternImage.onload = onCardImageLoad;
+cardPatternImage.onerror = onCardImageLoad;
+
+// ------------ Particle Trail Effect ------------
+(function() {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'particle-trail';
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+  document.body.appendChild(canvas);
+  
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  
+  const particles = [];
+  const maxParticles = 50;
+  const colors = ['#e83756', '#fff', '#ffd700', '#ff6347'];
+  
+  function createParticle(x, y) {
+    return {
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      life: 1.0,
+      decay: Math.random() * 0.02 + 0.02,
+      size: Math.random() * 3 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    };
+  }
+  
+  function updateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= p.decay;
+      
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+      
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    requestAnimationFrame(updateParticles);
+  }
+  
+  let mouseX = 0, mouseY = 0;
+  let lastTime = 0;
+  
+  document.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    
+    const now = Date.now();
+    if (now - lastTime > 16) { // ~60fps
+      if (particles.length < maxParticles) {
+        particles.push(createParticle(mouseX, mouseY));
+      }
+      lastTime = now;
+    }
+  });
+  
+  window.addEventListener('resize', function() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+  
+  updateParticles();
+})();
+
+// ------------ Snowflake Click Effect ------------
+(function() {
+  // Tạo canvas riêng cho click effect
+  const clickCanvas = document.createElement('canvas');
+  clickCanvas.id = 'snowflake-click-canvas';
+  clickCanvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5000;';
+  document.body.appendChild(clickCanvas);
+  
+  const ctx = clickCanvas.getContext('2d');
+  clickCanvas.width = window.innerWidth;
+  clickCanvas.height = window.innerHeight;
+  
+  const clickParticles = [];
+  
+  function createClickParticle(x, y) {
+    const count = 20;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count;
+      const speed = Math.random() * 3 + 2;
+      clickParticles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1.0,
+        decay: Math.random() * 0.03 + 0.02,
+        size: Math.random() * 5 + 3,
+        color: '#fff',
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.2
+      });
+    }
+  }
+  
+  function drawSnowflake(x, y, size, rotation) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    
+    // Vẽ hình dạng tuyết đơn giản (6 cánh)
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, size);
+      ctx.stroke();
+      ctx.rotate(Math.PI / 3);
+    }
+    
+    ctx.restore();
+  }
+  
+  function updateClickParticles() {
+    ctx.clearRect(0, 0, clickCanvas.width, clickCanvas.height);
+    
+    for (let i = clickParticles.length - 1; i >= 0; i--) {
+      const p = clickParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.98;
+      p.vy *= 0.98;
+      p.rotation += p.rotationSpeed;
+      p.life -= p.decay;
+      
+      if (p.life <= 0) {
+        clickParticles.splice(i, 1);
+        continue;
+      }
+      
+      ctx.globalAlpha = p.life;
+      drawSnowflake(p.x, p.y, p.size, p.rotation);
+    }
+    
+    requestAnimationFrame(updateClickParticles);
+  }
+  
+  document.addEventListener('click', function(e) {
+    createClickParticle(e.clientX, e.clientY);
+  });
+  
+  window.addEventListener('resize', function() {
+    clickCanvas.width = window.innerWidth;
+    clickCanvas.height = window.innerHeight;
+  });
+  
+  updateClickParticles();
+})();
+
 $(document).ready(function () {
   var $card = $(".card"),
     $bgCard = $(".bgCard"),
     $icon = $(".icon"),
     cartPageBottomP = document.querySelector(".cart-page-bottom p"),
     cartPageBottomH4 = document.querySelector(".cart-page-bottom h4");
-    let textTitle = "MerryChristmas H";
+    let textTitle = "Merry Christmas";
     let charArrTitle = textTitle.split('');
-let text = "Chúc cậu có một mùa giáng sinh an lành, hạnh phúc, có những giây phúc thật đáng nhớ, thật trọn vẹn, một năm mới thật thuận lợi trong cuộc sống.Meẻy Christmas and Happy New Year !"
+    // Nội dung lời chúc Giáng Sinh (không có Happy New Year)
+    let text = "Chúc cậu có một mùa Giáng Sinh thật an lành, ấm áp bên những người mà cậu thương yêu. Mong rằng từng khoảnh khắc trong mùa lễ này đều tràn ngập tiếng cười, ánh đèn lung linh và những điều nhỏ bé nhưng thật hạnh phúc. Cảm ơn vì cậu đã xuất hiện trong cuộc sống của tớ, và hy vọng những điều tốt đẹp nhất sẽ luôn đồng hành cùng cậu.";
+    let signature = "From BienKieu with love <3";
 let charArrContent = text.split('');
+    let charArrSignature = signature.split('');
 var currentIndexTitle = 0;
 var currentIndexContent = 0;
+    var currentIndexSignature = 0;
 var textIntervalTitle;
 var textIntervalContent;
+    var textIntervalSignature;
+    var cursorInterval;
+    var cursorVisible = true;
+    var isTyping = false;
+    
+    // Thêm cursor vào title
+    function updateTitleWithCursor() {
+        if (cartPageBottomH4) {
+            let displayText = charArrTitle.slice(0, currentIndexTitle).join('');
+            cartPageBottomH4.innerHTML = displayText + (cursorVisible && isTyping ? '<span class="typing-cursor">|</span>' : '');
+        }
+    }
+    
+    // Thêm cursor vào content
+    function updateContentWithCursor() {
+        if (cartPageBottomP) {
+            let displayText = charArrContent.slice(0, currentIndexContent).join('');
+            let signatureText = '';
+            if (currentIndexContent >= charArrContent.length && currentIndexSignature > 0) {
+                signatureText = '<span class="signature">' + charArrSignature.slice(0, currentIndexSignature).join('') + (cursorVisible && isTyping ? '<span class="typing-cursor">|</span>' : '') + '</span>';
+            } else if (currentIndexContent >= charArrContent.length) {
+                signatureText = '<span class="signature">' + (cursorVisible && isTyping ? '<span class="typing-cursor">|</span>' : '') + '</span>';
+            }
+            cartPageBottomP.innerHTML = displayText + (currentIndexContent < charArrContent.length && cursorVisible && isTyping ? '<span class="typing-cursor">|</span>' : '') + signatureText;
+        }
+    }
+    
+    // Cursor blinking animation
+    function startCursorBlink() {
+        if (cursorInterval) clearInterval(cursorInterval);
+        cursorInterval = setInterval(function() {
+            if (!isTyping) return;
+            cursorVisible = !cursorVisible;
+            if (currentIndexTitle < charArrTitle.length) {
+                updateTitleWithCursor();
+            } else if (currentIndexContent < charArrContent.length || currentIndexSignature < charArrSignature.length) {
+                updateContentWithCursor();
+            }
+        }, 530);
+    }
+    
 function resetText(){
-    clearInterval(textIntervalTitle)
-    clearInterval(textIntervalContent)
-    cartPageBottomH4.textContent = "";
-    cartPageBottomP.textContent = "";
+        clearInterval(textIntervalTitle);
+        clearInterval(textIntervalContent);
+        clearInterval(textIntervalSignature);
+        if (cursorInterval) clearInterval(cursorInterval);
+        if (cartPageBottomH4) cartPageBottomH4.textContent = "";
+        if (cartPageBottomP) cartPageBottomP.textContent = "";
     currentIndexTitle = 0;
     currentIndexContent = 0;
-}
-  $card.on("click", function () {
-    $(this).toggleClass("is-opened");
-    if($card.hasClass("is-opened")){
-        textIntervalTitle = setInterval(function(){
-            if(currentIndexTitle < charArrTitle.length){
-                cartPageBottomH4.textContent += charArrTitle[currentIndexTitle];
+        currentIndexSignature = 0;
+        isTyping = false;
+    }
+    
+    function typeTitle() {
+        if (currentIndexTitle >= charArrTitle.length) {
+            clearInterval(textIntervalTitle);
+            // Title đã gõ xong: hiển thị lại không có cursor
+            if (cartPageBottomH4) {
+                cartPageBottomH4.innerHTML = charArrTitle.join('');
+            }
+            // Đợi một chút trước khi bắt đầu content
+            setTimeout(function() {
+                textIntervalContent = setInterval(typeContent, 70);
+            }, 300);
+            return;
+        }
                 currentIndexTitle++;
-                console.log(currentIndexTitle)
+        updateTitleWithCursor();
+    }
+    
+    function typeContent() {
+        if (currentIndexContent >= charArrContent.length) {
+            clearInterval(textIntervalContent);
+            // Bắt đầu gõ signature
+            if (currentIndexSignature === 0) {
+                setTimeout(function() {
+                    textIntervalSignature = setInterval(typeSignature, 50);
+                }, 300);
             }
-            else{
-                clearInterval(textIntervalTitle)
-                textIntervalContent = setInterval(function(){
-                    if(currentIndexContent < charArrContent.length){
-                        cartPageBottomP.textContent += charArrContent[currentIndexContent];
+            return;
+        }
                         currentIndexContent++;
-                console.log(currentIndexContent)
-                    }
-                    else{
-                        clearInterval(textIntervalContent)
-                    }
-                },100)
+        updateContentWithCursor();
+    }
+    
+    function typeSignature() {
+        if (currentIndexSignature >= charArrSignature.length) {
+            clearInterval(textIntervalSignature);
+            isTyping = false;
+            // Ẩn cursor sau khi hoàn thành
+            if (cartPageBottomH4) cartPageBottomH4.innerHTML = charArrTitle.join('');
+            if (cartPageBottomP) {
+                let signatureHtml = '<span class="signature">' + charArrSignature.join('') + '</span>';
+                cartPageBottomP.innerHTML = charArrContent.join('') + signatureHtml;
             }
-        },100)
+            return;
+        }
+        currentIndexSignature++;
+        updateContentWithCursor();
+    }
+    
+    $card.on("click", function () {
+        $(this).toggleClass("is-opened");
+        if($card.hasClass("is-opened")){
+            resetText();
+            isTyping = true;
+            startCursorBlink();
+            
+            // Typing effect với tốc độ cố định
+            textIntervalTitle = setInterval(typeTitle, 70);
     }
     else{
-        resetText()
+            resetText();
     }
   });
 
   $(".centerer").on("click", function () {
-    $card.fadeIn();
+    function showCard() {
+      $card.fadeIn(400, function() {
+        // Sau khi card fadeIn, đảm bảo background image hiển thị
+        $('.card').addClass('images-ready');
+      });
     $bgCard.fadeIn();
     $icon.fadeIn();
+    }
+    
+    if (cardImagesLoaded >= totalCardImages) {
+      // Images đã load xong, hiển thị ngay
+      showCard();
+    } else {
+      // Đợi images load xong (tối đa 2 giây)
+      const checkInterval = setInterval(function() {
+        if (cardImagesLoaded >= totalCardImages) {
+          clearInterval(checkInterval);
+          showCard();
+        }
+      }, 100);
+      
+      // Timeout sau 2 giây dù images chưa load xong
+      setTimeout(function() {
+        clearInterval(checkInterval);
+        showCard(); // Vẫn hiển thị card
+      }, 2000);
+    }
   });
   $(".fa-xmark").on("click", function () {
     $card.fadeOut();

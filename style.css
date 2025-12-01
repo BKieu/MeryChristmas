@@ -313,7 +313,13 @@
   -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transform-origin: left;
- 
+  opacity: 0;
+  transition: opacity 0.4s ease-in;
+}
+
+body.card-images-ready .cart-page-outside,
+.card.images-ready .cart-page-outside {
+  opacity: 1;
 }
 
 .cart-page-inside,
@@ -352,6 +358,31 @@
 .cart-page-bottom p{
     font-size: 19px;
     font-family: 'Dancing Script', cursive;
+    line-height: 1.6;
+}
+
+.cart-page-bottom p .signature {
+    display: block;
+    margin-top: 15px;
+    font-size: 18px;
+    color: #c72320;
+    font-weight: bold;
+    text-align: right;
+    padding-right: 20px;
+}
+
+/* Typing cursor effect */
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    background-color: #E3442E;
+    animation: blink 1s infinite;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
 }
 
 .merry-christmas {
